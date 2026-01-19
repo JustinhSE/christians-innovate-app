@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { toggleMeetingActive, deleteMeeting, duplicateMeeting } from './actions'
-import { Calendar, Users, ExternalLink, Copy, Trash2, Power, Eye, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { Calendar, Users, ExternalLink, Copy, Trash2, Power, Loader2, Edit } from 'lucide-react'
+import { EditMeetingModal } from './edit-meeting-modal'
+import { AttendeesModal } from './attendees-modal'
 
 interface Meeting {
   id: string
@@ -14,6 +15,7 @@ interface Meeting {
   is_active: boolean
   created_at: string
   attendance_count?: number
+  attendees?: any[]
 }
 
 interface MeetingListProps {
@@ -23,6 +25,8 @@ interface MeetingListProps {
 export function MeetingList({ meetings }: MeetingListProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [actionType, setActionType] = useState<string | null>(null)
+  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null)
+  const [viewingAttendees, setViewingAttendees] = useState<Meeting | null>(null)
 
   const handleToggleActive = async (meetingId: string, currentStatus: boolean) => {
     setLoadingId(meetingId)
@@ -106,10 +110,13 @@ export function MeetingList({ meetings }: MeetingListProps) {
                     </span>
                   </div>
                   {meeting.attendance_count !== undefined && (
-                    <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setViewingAttendees(meeting)}
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
                       <Users className="h-4 w-4" />
                       <span>{meeting.attendance_count} attendees</span>
-                    </div>
+                    </button>
                   )}
                 </div>
               </div>
@@ -126,11 +133,19 @@ export function MeetingList({ meetings }: MeetingListProps) {
                 </a>
 
                 <button
+                  onClick={() => setEditingMeeting(meeting)}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 text-sm font-medium"
+                  title="Edit"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+
+                <button
                   onClick={() => handleToggleActive(meeting.id, meeting.is_active)}
                   disabled={isLoading && actionType === 'toggle'}
                   className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${meeting.is_active
-                      ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
                     } disabled:opacity-50`}
                   title={meeting.is_active ? 'Deactivate' : 'Activate'}
                 >
@@ -177,6 +192,22 @@ export function MeetingList({ meetings }: MeetingListProps) {
           </div>
         )
       })}
+
+      {editingMeeting && (
+        <EditMeetingModal
+          meeting={editingMeeting}
+          onClose={() => setEditingMeeting(null)}
+        />
+      )}
+
+      {viewingAttendees && (
+        <AttendeesModal
+          meetingId={viewingAttendees.id}
+          meetingTitle={viewingAttendees.title}
+          attendees={viewingAttendees.attendees || []}
+          onClose={() => setViewingAttendees(null)}
+        />
+      )}
     </div>
   )
 }

@@ -24,20 +24,47 @@ export default async function MeetingsPage() {
     return redirect('/dashboard')
   }
 
-  // Fetch all meetings with attendance count
-  const { data: meetings } = await supabase
+  // Fetch all meetings
+  const { data: meetings, error: meetingsError } = await supabase
     .from('meetings')
-    .select(`
-      *,
-      meeting_attendance(count)
-    `)
+    .select('*')
     .order('meeting_date', { ascending: false })
 
-  const meetingsWithCounts = meetings?.map(meeting => ({
-    ...meeting,
-    attendance_count: meeting.meeting_attendance?.[0]?.count || 0,
-    meeting_attendance: undefined
-  })) || []
+  // Fetch attendance with user profiles for all meetings
+  const { data: attendanceData, error: attendanceError } = await supabase
+    .from('meeting_attendance')
+    .select(`
+      meeting_id,
+      user_id,
+      attended_at
+    `)
+
+  // Fetch user profiles separately
+  const userIds = [...new Set(attendanceData?.map(a => a.user_id) || [])]
+  const { data: profiles } = await supabase
+    .from('user_profiles')
+    .select('id, full_name, email, avatar_url')
+    .in('id', userIds)
+
+  // Create a map of user profiles
+  const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+
+  // Combine the data
+  const meetingsWithCounts = meetings?.map(meeting => {
+    const attendees = attendanceData
+      ?.filter(a => a.meeting_id === meeting.id)
+      .map(attendance => ({
+        user_id: attendance.user_id,
+        attended_at: attendance.attended_at,
+        user_profiles: profileMap.get(attendance.user_id) || null
+      })) || []
+
+    return {
+      ...meeting,
+      attendance_count: attendees.length,
+      attendees
+    }
+  }) || []
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
