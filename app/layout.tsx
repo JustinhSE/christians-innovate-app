@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavigationBar } from './navigation'
+import { createClient } from '@/utils/supabase/server'
+import { AnnouncementBar } from './announcement-bar'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,17 +33,38 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Fetch active meeting for announcement bar
+  let activeMeeting = null
+  if (user) {
+    const { data } = await supabase
+      .from('meetings')
+      .select('*')
+      .eq('is_active', true)
+      .gte('meeting_date', new Date().toISOString())
+      .order('meeting_date', { ascending: true })
+      .limit(1)
+      .single()
+
+    activeMeeting = data
+  }
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NavigationBar />
+        {activeMeeting && user && (
+          <AnnouncementBar meeting={activeMeeting} userId={user.id} />
+        )}
         {children}
       </body>
     </html>

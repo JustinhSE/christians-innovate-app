@@ -29,3 +29,23 @@ export async function signOut() {
   revalidatePath('/', 'layout')
   redirect('/login')
 }
+
+export async function trackAttendance(meetingId: string, userId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('meeting_attendance')
+    .insert({
+      meeting_id: meetingId,
+      user_id: userId
+    })
+    .select()
+    .single()
+
+  if (error && error.code !== '23505') { // Ignore duplicate key errors
+    console.error('Error tracking attendance:', error)
+    throw error
+  }
+
+  return { success: true }
+}

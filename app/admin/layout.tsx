@@ -42,6 +42,12 @@ export default async function AdminLayout({
                   <span className="sm:hidden">Plans</span>
                 </a>
                 <a
+                  href="/admin/meetings"
+                  className="hover:text-blue-200 font-medium transition"
+                >
+                  Meetings
+                </a>
+                <a
                   href="/admin/members"
                   className="hover:text-blue-200 font-medium transition"
                 >
