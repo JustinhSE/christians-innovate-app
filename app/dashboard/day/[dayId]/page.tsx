@@ -4,6 +4,7 @@ import { VerseDisplay } from '../../verse-display'
 import ReactMarkdown from 'react-markdown'
 import { ArrowLeft, Calendar, BookOpen } from 'lucide-react'
 import { CommentSection } from './comment-section'
+import { MarkCompleteButton } from './mark-complete-button'
 import Link from 'next/link'
 
 export default async function DayViewPage({
@@ -64,20 +65,23 @@ export default async function DayViewPage({
         {/* Header */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 shadow-sm">
           <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-gray-600 mb-2">{day.reading_plans.title}</p>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Day {day.day_number}
               </h1>
             </div>
-            <span
-              className={`px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap ${isCompleted
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-800'
-                }`}
-            >
-              {isCompleted ? 'Completed' : 'Not Completed'}
-            </span>
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+              <span
+                className={`px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap ${isCompleted
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+                  }`}
+              >
+                {isCompleted ? 'Completed' : 'Not Completed'}
+              </span>
+              <MarkCompleteButton dayId={dayId} isCompleted={isCompleted} />
+            </div>
           </div>
 
           <div className="flex items-center gap-4 text-sm text-gray-600">
