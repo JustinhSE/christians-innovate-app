@@ -213,7 +213,7 @@ export function CommentSection({ dayId, userId }: { dayId: string; userId: strin
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div>
                       <p className="font-medium text-gray-900">
-                        {comment.user_name || comment.user_email}
+                        {comment.user_name || 'User'}
                       </p>
                       <p className="text-xs text-gray-500">
                         {new Date(comment.created_at).toLocaleDateString('en-US', {
