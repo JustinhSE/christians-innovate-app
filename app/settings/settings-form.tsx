@@ -27,6 +27,9 @@ interface SettingsFormProps {
 export function SettingsForm({ user, profile }: SettingsFormProps) {
   const [fullName, setFullName] = useState(profile.full_name || user.user_metadata?.full_name || '')
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '')
+  const [ciUpdates, setCiUpdates] = useState(profile.ci_updates)
+  const [bibleYear, setBibleYear] = useState(profile.bible_year)
+  const [skillShare, setSkillShare] = useState(profile.skill_share)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -101,6 +104,9 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
         .update({
           full_name: fullName.trim() || null,
           avatar_url: avatarUrl || null,
+          ci_updates: ciUpdates,
+          bible_year: bibleYear,
+          skill_share: skillShare,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -207,6 +213,53 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Newsletter Preferences */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Newsletter Preferences</h2>
+        <p className="text-sm text-gray-600 mb-4">Choose which updates you'd like to receive from us</p>
+
+        <div className="space-y-4">
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={ciUpdates}
+              onChange={(e) => setCiUpdates(e.target.checked)}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <p className="font-medium text-gray-900 group-hover:text-blue-600 transition">CI Updates</p>
+              <p className="text-sm text-gray-500">Receive updates about Christians Innovate community and events</p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={bibleYear}
+              onChange={(e) => setBibleYear(e.target.checked)}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <p className="font-medium text-gray-900 group-hover:text-blue-600 transition">Bible in a Year</p>
+              <p className="text-sm text-gray-500">Get reminders and updates for Bible reading plans</p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={skillShare}
+              onChange={(e) => setSkillShare(e.target.checked)}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <div className="flex-1">
+              <p className="font-medium text-gray-900 group-hover:text-blue-600 transition">Skill Share</p>
+              <p className="text-sm text-gray-500">Receive notifications about skill-sharing opportunities and workshops</p>
+            </div>
+          </label>
         </div>
       </div>
 

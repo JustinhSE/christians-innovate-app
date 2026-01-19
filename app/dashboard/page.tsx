@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { unsubscribeFromPlan } from './actions'
 import { SubscribeButton } from './subscribe-button'
-import { DayCard } from './day-card'
+import { ReadingProgress } from './reading-progress'
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -120,28 +120,7 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Your Reading Progress</h3>
-              <div className="space-y-3 sm:space-y-4">
-                {planDays && planDays.length > 0 ? (
-                  planDays.map((day: any) => {
-                    const isCompleted = day.user_progress?.[0]?.is_completed || false
-
-                    return (
-                      <DayCard
-                        key={day.id}
-                        day={day}
-                        isCompleted={isCompleted}
-                      />
-                    )
-                  })
-                ) : (
-                  <div className="bg-white border border-gray-200 rounded-lg p-8 sm:p-12 text-center">
-                    <p className="text-sm sm:text-base text-gray-600">No daily readings available yet for this plan.</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            <ReadingProgress days={planDays || []} />
           </div>
         )}
       </div>

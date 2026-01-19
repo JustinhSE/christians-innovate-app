@@ -1,9 +1,10 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
-import { LayoutDashboard, Shield, LogOut, Menu } from 'lucide-react'
+import { LayoutDashboard, Shield, LogOut } from 'lucide-react'
 import { signOut } from './actions'
 import { MobileMenu } from './mobile-menu'
+import { UserProfileDropdown } from './user-profile-dropdown'
 
 export async function NavigationBar() {
   const supabase = await createClient()
@@ -21,6 +22,13 @@ export async function NavigationBar() {
     .single()
 
   const isAdmin = userRole?.is_admin === true
+
+  // Fetch user profile for avatar and name
+  const { data: userProfile } = await supabase
+    .from('user_profiles')
+    .select('full_name, avatar_url')
+    .eq('user_id', user.id)
+    .single()
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -63,9 +71,11 @@ export async function NavigationBar() {
 
           {/* Desktop User Info */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/settings" className="text-sm text-gray-600 hover:text-gray-900 truncate max-w-[200px] transition">
-              {user.email}
-            </Link>
+            <UserProfileDropdown
+              fullName={userProfile?.full_name || null}
+              avatarUrl={userProfile?.avatar_url || null}
+              userId={user.id}
+            />
             <form action={signOut}>
               <button
                 type="submit"
