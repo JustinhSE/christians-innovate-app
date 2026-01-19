@@ -197,14 +197,14 @@ export function CommentSection({ dayId, userId }: { dayId: string; userId: strin
                 {comment.avatar_url ? (
                   <Image
                     src={comment.avatar_url}
-                    alt={comment.user_name || comment.user_email || 'User'}
+                    alt={comment.user_name || 'User'}
                     width={40}
                     height={40}
                     className="flex-shrink-0 w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
                   <div className={`flex-shrink-0 w-10 h-10 rounded-full ${getAvatarColor(comment.user_id)} flex items-center justify-center text-white font-semibold text-sm`}>
-                    {getInitials(comment.user_name || comment.user_email || 'U')}
+                    {getInitials(comment.user_name || 'U')}
                   </div>
                 )}
 
