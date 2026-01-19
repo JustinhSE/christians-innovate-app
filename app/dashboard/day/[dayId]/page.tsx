@@ -107,7 +107,11 @@ export default async function DayViewPage({
         {/* Bible Verse */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Scripture</h2>
-          <VerseDisplay reference={day.scripture_reference} translation="NIV" />
+          <VerseDisplay
+            reference={day.scripture_reference}
+            translation="NIV"
+            showVersionSelector={true}
+          />
         </div>
 
         {/* Comments Section */}

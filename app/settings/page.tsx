@@ -49,6 +49,15 @@ export default async function SettingsPage() {
             bible_year: false,
             skill_share: false,
             referral: null,
+            skills: [],
+            interests: [],
+            looking_for_business_partner: false,
+            looking_for_accountability_partner: false,
+            bio: null,
+            linkedin_url: null,
+            facebook_url: null,
+            twitter_url: null,
+            website_url: null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }}

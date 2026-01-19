@@ -15,6 +15,15 @@ interface Profile {
   bible_year: boolean
   skill_share: boolean
   referral: string | null
+  skills: string[]
+  interests: string[]
+  looking_for_business_partner: boolean
+  looking_for_accountability_partner: boolean
+  bio: string | null
+  linkedin_url: string | null
+  facebook_url: string | null
+  twitter_url: string | null
+  website_url: string | null
   created_at: string
   updated_at: string
 }
@@ -30,6 +39,17 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
   const [ciUpdates, setCiUpdates] = useState(profile.ci_updates)
   const [bibleYear, setBibleYear] = useState(profile.bible_year)
   const [skillShare, setSkillShare] = useState(profile.skill_share)
+  const [bio, setBio] = useState(profile.bio || '')
+  const [skills, setSkills] = useState<string[]>(profile.skills || [])
+  const [interests, setInterests] = useState<string[]>(profile.interests || [])
+  const [lookingForBusinessPartner, setLookingForBusinessPartner] = useState(profile.looking_for_business_partner)
+  const [lookingForAccountabilityPartner, setLookingForAccountabilityPartner] = useState(profile.looking_for_accountability_partner)
+  const [linkedinUrl, setLinkedinUrl] = useState(profile.linkedin_url || '')
+  const [facebookUrl, setFacebookUrl] = useState(profile.facebook_url || '')
+  const [twitterUrl, setTwitterUrl] = useState(profile.twitter_url || '')
+  const [websiteUrl, setWebsiteUrl] = useState(profile.website_url || '')
+  const [skillInput, setSkillInput] = useState('')
+  const [interestInput, setInterestInput] = useState('')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -107,6 +127,15 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
           ci_updates: ciUpdates,
           bible_year: bibleYear,
           skill_share: skillShare,
+          bio: bio.trim() || null,
+          skills,
+          interests,
+          looking_for_business_partner: lookingForBusinessPartner,
+          looking_for_accountability_partner: lookingForAccountabilityPartner,
+          linkedin_url: linkedinUrl.trim() || null,
+          facebook_url: facebookUrl.trim() || null,
+          twitter_url: twitterUrl.trim() || null,
+          website_url: websiteUrl.trim() || null,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -210,6 +239,235 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter your full name"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
+              Bio
+            </label>
+            <textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell us about yourself..."
+              rows={4}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+          </div>
+        </div>
+
+        {/* Skills & Interests */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Skills & Interests</h2>
+
+          <div className="space-y-6">
+            {/* Skills */}
+            <div>
+              <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-1">
+                Skills
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  id="skills"
+                  type="text"
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      if (skillInput.trim() && !skills.includes(skillInput.trim())) {
+                        setSkills([...skills, skillInput.trim()])
+                        setSkillInput('')
+                      }
+                    }
+                  }}
+                  placeholder="Add a skill and press Enter"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (skillInput.trim() && !skills.includes(skillInput.trim())) {
+                      setSkills([...skills, skillInput.trim()])
+                      setSkillInput('')
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => setSkills(skills.filter((_, i) => i !== index))}
+                      className="hover:text-blue-900"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Interests */}
+            <div>
+              <label htmlFor="interests" className="block text-sm font-medium text-gray-700 mb-1">
+                Interests
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  id="interests"
+                  type="text"
+                  value={interestInput}
+                  onChange={(e) => setInterestInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      if (interestInput.trim() && !interests.includes(interestInput.trim())) {
+                        setInterests([...interests, interestInput.trim()])
+                        setInterestInput('')
+                      }
+                    }
+                  }}
+                  placeholder="Add an interest and press Enter"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (interestInput.trim() && !interests.includes(interestInput.trim())) {
+                      setInterests([...interests, interestInput.trim()])
+                      setInterestInput('')
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {interests.map((interest, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                  >
+                    {interest}
+                    <button
+                      type="button"
+                      onClick={() => setInterests(interests.filter((_, i) => i !== index))}
+                      className="hover:text-green-900"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Partnership Preferences */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Looking For</h2>
+          <p className="text-sm text-gray-600 mb-4">Let others know what type of partnerships you're interested in</p>
+
+          <div className="space-y-4">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={lookingForBusinessPartner}
+                onChange={(e) => setLookingForBusinessPartner(e.target.checked)}
+                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <p className="font-medium text-gray-900 group-hover:text-blue-600 transition">Business Partners</p>
+                <p className="text-sm text-gray-500">I'm open to business collaboration and partnership opportunities</p>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={lookingForAccountabilityPartner}
+                onChange={(e) => setLookingForAccountabilityPartner(e.target.checked)}
+                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <p className="font-medium text-gray-900 group-hover:text-blue-600 transition">Accountability Partners</p>
+                <p className="text-sm text-gray-500">I'm looking for someone to help keep me accountable in my faith and goals</p>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Social Media & Website */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Social Media & Website</h2>
+        <p className="text-sm text-gray-600 mb-4">Add your social media profiles and website</p>
+
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-1">
+              LinkedIn URL
+            </label>
+            <input
+              id="linkedinUrl"
+              type="url"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://linkedin.com/in/yourprofile"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="facebookUrl" className="block text-sm font-medium text-gray-700 mb-1">
+              Facebook URL
+            </label>
+            <input
+              id="facebookUrl"
+              type="url"
+              value={facebookUrl}
+              onChange={(e) => setFacebookUrl(e.target.value)}
+              placeholder="https://facebook.com/yourprofile"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="twitterUrl" className="block text-sm font-medium text-gray-700 mb-1">
+              Twitter/X URL
+            </label>
+            <input
+              id="twitterUrl"
+              type="url"
+              value={twitterUrl}
+              onChange={(e) => setTwitterUrl(e.target.value)}
+              placeholder="https://twitter.com/yourhandle"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="websiteUrl" className="block text-sm font-medium text-gray-700 mb-1">
+              Website URL
+            </label>
+            <input
+              id="websiteUrl"
+              type="url"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              placeholder="https://yourwebsite.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>

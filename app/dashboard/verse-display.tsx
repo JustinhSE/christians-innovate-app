@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { getBibleVerse } from './verse-actions'
 import type { TranslationKey } from '@/utils/bible-api'
-import { BookOpen, Loader2 } from 'lucide-react'
+import { BookOpen, Loader2, ChevronDown } from 'lucide-react'
 
 interface VerseDisplayProps {
   reference: string
   translation?: TranslationKey
   truncate?: boolean
   maxLength?: number
+  showVersionSelector?: boolean
 }
 
 interface VerseData {
@@ -18,15 +19,23 @@ interface VerseData {
   reference: string
 }
 
+const AVAILABLE_VERSIONS: { value: TranslationKey; label: string }[] = [
+  { value: 'NIV', label: 'NIV - New International Version' },
+  { value: 'KJV', label: 'KJV - King James Version' },
+  { value: 'NKJV', label: 'NKJV - New King James Version' },
+]
+
 export function VerseDisplay({
   reference,
-  translation = 'NIV',
+  translation: initialTranslation = 'NIV',
   truncate = false,
-  maxLength = 150
+  maxLength = 150,
+  showVersionSelector = false
 }: VerseDisplayProps) {
   const [verses, setVerses] = useState<VerseData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [selectedVersion, setSelectedVersion] = useState<TranslationKey>(initialTranslation)
 
   useEffect(() => {
     async function loadVerses() {
@@ -38,7 +47,7 @@ export function VerseDisplay({
         const references = reference.split(',').map(ref => ref.trim()).filter(ref => ref.length > 0)
 
         const results = await Promise.all(
-          references.map(ref => getBibleVerse(ref, translation))
+          references.map(ref => getBibleVerse(ref, selectedVersion))
         )
 
         const validResults = results.filter(result => result !== null) as VerseData[]
@@ -57,7 +66,7 @@ export function VerseDisplay({
     }
 
     loadVerses()
-  }, [reference, translation])
+  }, [reference, selectedVersion])
 
   if (loading) {
     return (
@@ -93,7 +102,7 @@ export function VerseDisplay({
               {displayText}
             </p>
             <p className="text-xs sm:text-sm text-blue-700 font-medium">
-              {verses.map(v => v.reference).join(', ')} ({translation})
+              {verses.map(v => v.reference).join(', ')} ({selectedVersion})
             </p>
           </div>
         </div>
@@ -101,9 +110,32 @@ export function VerseDisplay({
     )
   }
 
-  // For full view, display each verse separately
+  // For full view, display each verse separately with optional version selector
   return (
     <div className="space-y-4">
+      {showVersionSelector && (
+        <div className="flex items-center gap-2 mb-2">
+          <label htmlFor="version-select" className="text-sm font-medium text-gray-700">
+            Bible Version:
+          </label>
+          <div className="relative">
+            <select
+              id="version-select"
+              value={selectedVersion}
+              onChange={(e) => setSelectedVersion(e.target.value as TranslationKey)}
+              className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm font-medium text-gray-700 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            >
+              {AVAILABLE_VERSIONS.map((version) => (
+                <option key={version.value} value={version.value}>
+                  {version.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+          </div>
+        </div>
+      )}
+      selectedVers
       {verses.map((verse, index) => (
         <div key={index} className="py-4 px-4 sm:px-6 bg-blue-50 border-l-4 border-blue-500 rounded">
           <div className="flex items-start gap-3">
@@ -126,7 +158,7 @@ export function VerseDisplay({
                 ))}
               </div>
               <p className="text-xs sm:text-sm text-blue-600 font-medium">
-                ({translation})
+                ({selectedVersion})
               </p>
             </div>
           </div>
