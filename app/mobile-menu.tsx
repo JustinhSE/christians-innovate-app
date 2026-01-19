@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Shield, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Shield, LogOut, Menu, X, Settings } from 'lucide-react'
 import { signOut } from './actions'
 
 export function MobileMenu({ userEmail, isAdmin }: { userEmail: string; isAdmin: boolean }) {
@@ -29,7 +29,13 @@ export function MobileMenu({ userEmail, isAdmin }: { userEmail: string; isAdmin:
             <div className="px-4 py-6 space-y-4">
               {/* User Email */}
               <div className="pb-4 border-b border-gray-200">
-                <p className="text-sm text-gray-600 truncate">{userEmail}</p>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="text-sm text-gray-600 hover:text-gray-900 truncate block"
+                >
+                  {userEmail}
+                </Link>
               </div>
 
               {/* Navigation Links */}
@@ -52,6 +58,15 @@ export function MobileMenu({ userEmail, isAdmin }: { userEmail: string; isAdmin:
                   Admin
                 </Link>
               )}
+
+              <Link
+                href="/settings"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 text-gray-900 hover:text-blue-600 font-medium py-2"
+              >
+                <Settings className="h-5 w-5" />
+                Settings
+              </Link>
 
               {/* Sign Out */}
               <form action={signOut} className="pt-4 border-t border-gray-200">

@@ -71,7 +71,8 @@ export function EditDayModal({ day, onClose }: { day: Day; onClose: () => void }
             <input type="hidden" name="day_id" value={day.id} />
             <input type="hidden" name="plan_id" value={day.plan_id} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">\n              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
               <label htmlFor="edit_day_number" className="block text-sm font-medium text-gray-700 mb-1">
                 Day Number <span className="text-red-500">*</span>
               </label>

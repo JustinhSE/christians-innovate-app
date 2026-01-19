@@ -63,7 +63,9 @@ export async function NavigationBar() {
 
           {/* Desktop User Info */}
           <div className="hidden md:flex items-center gap-4">
-            <span className="text-sm text-gray-600 truncate max-w-[200px]">{user.email}</span>
+            <Link href="/settings" className="text-sm text-gray-600 hover:text-gray-900 truncate max-w-[200px] transition">
+              {user.email}
+            </Link>
             <form action={signOut}>
               <button
                 type="submit"

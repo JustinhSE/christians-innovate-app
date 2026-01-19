@@ -3,17 +3,45 @@
 import { toggleAdminStatus } from './actions'
 import { useState } from 'react'
 import { Shield, ShieldOff, User, Calendar, Mail, CheckCircle, XCircle } from 'lucide-react'
+import Image from 'next/image'
 
 type Member = {
   user_id: string
-  name: string
+  full_name: string | null
   email: string
+  avatar_url: string | null
   created_at: string
   ci_updates: boolean | null
+  bible_year: boolean | null
+  skill_share: boolean | null
+  referral: string | null
   reading_plan_updates: boolean | null
   user_roles: Array<{
     is_admin: boolean
   }> | null
+}
+
+function getInitials(name: string | null): string {
+  if (!name) return 'U'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.substring(0, 2).toUpperCase()
+}
+
+function getAvatarColor(userId: string): string {
+  const colors = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-pink-500',
+    'bg-indigo-500',
+    'bg-yellow-500',
+    'bg-red-500',
+  ]
+  const index = userId.charCodeAt(0) % colors.length
+  return colors[index]
 }
 
 export function MemberList({ members }: { members: Member[] }) {
@@ -61,23 +89,36 @@ export function MemberList({ members }: { members: Member[] }) {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-full ${isAdmin ? 'bg-blue-100' : 'bg-gray-100'
-                      }`}>
-                      {isAdmin ? (
-                        <Shield className="h-5 w-5 text-blue-600" />
-                      ) : (
-                        <User className="h-5 w-5 text-gray-600" />
-                      )}
-                    </div>
+                    {member.avatar_url ? (
+                      <Image
+                        src={member.avatar_url}
+                        alt={member.full_name || 'User'}
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ${getAvatarColor(member.user_id)}`}>
+                        {getInitials(member.full_name)}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <h4 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                        {member.name}
+                        {member.full_name || 'User'}
                       </h4>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mt-1">
-                        <Mail className="h-3 w-3" />
-                        <span className="truncate">{member.email}</span>
-                      </div>
+                      {isAdmin && (
+                        <span className="inline-flex items-center gap-1 text-xs text-blue-600 font-medium mt-1">
+                          <Shield className="h-3 w-3" />
+                          Admin
+                        </span>
+                      )}
                     </div>
+                  </div>
+
+                  {/* Email - fetch from auth.users */}
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-2 pl-13">
+                    <Mail className="h-3 w-3" />
+                    <span className="truncate">{member.email}</span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 pl-13">
@@ -93,28 +134,43 @@ export function MemberList({ members }: { members: Member[] }) {
                       </div>
                     )}
 
+                    {member.bible_year && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        Bible in a Year
+                      </div>
+                    )}
+
+                    {member.skill_share && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        Skill Share
+                      </div>
+                    )}
+
+                    {member.referral && (
+                      <div className="flex items-center gap-1 text-gray-600">
+                        <User className="h-3 w-3" />
+                        Referred by: {member.referral}
+                      </div>
+                    )}
+
                     {member.reading_plan_updates && (
                       <div className="flex items-center gap-1 text-green-600">
                         <CheckCircle className="h-3 w-3" />
                         Reading Plans
                       </div>
                     )}
-
-                    {isAdmin && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-medium">
-                        Admin
-                      </span>
-                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleToggleAdmin(member.user_id, isAdmin, member.name)}
+                    onClick={() => handleToggleAdmin(member.user_id, isAdmin, member.full_name || 'User')}
                     disabled={processingId === member.user_id}
                     className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition ${isAdmin
-                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isAdmin ? (

@@ -21,8 +21,7 @@ export default async function MembersPage() {
         .from('user_profiles')
         .insert({
           user_id: currentUser.id,
-          name: currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'User',
-          email: currentUser.email || '',
+          full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User',
           ci_updates: false,
           bible_year: false,
           skill_share: false
@@ -49,7 +48,7 @@ export default async function MembersPage() {
     .from('user_roles')
     .select('*')
 
-  // Combine profiles with their roles
+  // Combine profiles with their roles (email now in user_profiles)
   const users = profiles?.map(profile => ({
     ...profile,
     user_roles: roles?.filter(role => role.user_id === profile.user_id) || []

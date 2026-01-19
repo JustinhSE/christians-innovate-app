@@ -32,8 +32,7 @@ export async function login(formData: FormData) {
         .from('user_profiles')
         .insert({
           user_id: authData.user.id,
-          name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0] || 'User',
-          email: authData.user.email || '',
+          full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User',
           ci_updates: false,
           bible_year: false,
           skill_share: false

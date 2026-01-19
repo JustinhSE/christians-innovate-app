@@ -1,7 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { toggleProgress, subscribeToPlan, unsubscribeFromPlan } from './actions'
+import { unsubscribeFromPlan } from './actions'
 import { SubscribeButton } from './subscribe-button'
+import { DayCard } from './day-card'
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -127,25 +128,11 @@ export default async function Dashboard() {
                     const isCompleted = day.user_progress?.[0]?.is_completed || false
 
                     return (
-                      <div key={day.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base sm:text-lg text-gray-900">Day {day.day_number}: {day.scripture_reference}</h3>
-                          {day.content_markdown && <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mt-1">{day.content_markdown}</p>}
-                        </div>
-
-                        <form action={toggleProgress}>
-                          <input type="hidden" name="day_id" value={day.id} />
-                          <input type="hidden" name="current_status" value={String(isCompleted)} />
-                          <button
-                            className={`px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap ${isCompleted
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                              }`}
-                          >
-                            {isCompleted ? 'Completed' : 'Mark as Read'}
-                          </button>
-                        </form>
-                      </div>
+                      <DayCard
+                        key={day.id}
+                        day={day}
+                        isCompleted={isCompleted}
+                      />
                     )
                   })
                 ) : (

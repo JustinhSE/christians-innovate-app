@@ -82,10 +82,11 @@ export function DayList({ days, planId }: { days: Day[]; planId: string }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap\">\n                  <button
-                  onClick={() => setEditingDay(day)}
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
-                >
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap\">                  
+                  <button
+                    onClick={() => setEditingDay(day)}
+                    className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
+                  >
                   <Edit className="h-4 w-4" />
                   Edit
                 </button>
