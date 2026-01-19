@@ -13,6 +13,7 @@ interface PlanDay {
   title: string
   scripture_reference: string
   notes: string | null
+  content_markdown: string | null
   created_at: string
   user_progress?: Array<{ is_completed: boolean }>
 }
