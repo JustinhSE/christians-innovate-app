@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Shield, LogOut, Menu, X, Settings, Users } from 'lucide-react'
+import { LayoutDashboard, Shield, LogOut, Menu, X, Settings, Users, Rocket } from 'lucide-react'
 import { signOut } from './actions'
 
 export function MobileMenu({ userEmail, isAdmin }: { userEmail: string; isAdmin: boolean }) {
@@ -46,6 +46,15 @@ export function MobileMenu({ userEmail, isAdmin }: { userEmail: string; isAdmin:
               >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
+              </Link>
+
+              <Link
+                href="/launch-prayer"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 text-gray-900 hover:text-blue-600 font-medium py-2"
+              >
+                <Rocket className="h-5 w-5" />
+                Launch & Prayer
               </Link>
 
               <Link

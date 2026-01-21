@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
-import { LayoutDashboard, Shield, LogOut, Users } from 'lucide-react'
+import { LayoutDashboard, Shield, LogOut, Users, Rocket } from 'lucide-react'
 import { signOut } from './actions'
 import { MobileMenu } from './mobile-menu'
 import { UserProfileDropdown } from './user-profile-dropdown'
@@ -55,6 +55,14 @@ export async function NavigationBar() {
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
+              </Link>
+
+              <Link
+                href="/launch-prayer"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition"
+              >
+                <Rocket className="h-4 w-4" />
+                Launch & Prayer
               </Link>
 
               <Link

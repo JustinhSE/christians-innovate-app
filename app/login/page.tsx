@@ -2,11 +2,13 @@ import { login } from './actions'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { message?: string }
+  searchParams: Promise<{ message?: string }>
 }) {
+  const params = await searchParams
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-gray-50">
       <div className="w-full max-w-md">
@@ -27,9 +29,9 @@ export default function LoginPage({
             Welcome Back
           </h1>
 
-          {searchParams?.message && (
+          {params?.message && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm mb-4">
-              {searchParams.message}
+              {params.message}
             </div>
           )}
 

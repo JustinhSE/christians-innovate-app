@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { unsubscribeFromPlan } from './actions'
 import { SubscribeButton } from './subscribe-button'
 import { ReadingProgress } from './reading-progress'
+import { LaunchPrayerPreview } from './launch-prayer-preview'
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -95,6 +96,9 @@ export default async function Dashboard() {
                 <p className="text-sm sm:text-base text-gray-600">No reading plans available yet. Check back soon!</p>
               </div>
             )}
+
+            {/* Launch & Prayer Preview */}
+            <LaunchPrayerPreview />
           </div>
         )}
 
@@ -121,6 +125,9 @@ export default async function Dashboard() {
             </div>
 
             <ReadingProgress days={planDays || []} />
+
+            {/* Launch & Prayer Preview */}
+            <LaunchPrayerPreview />
           </div>
         )}
       </div>

@@ -5,51 +5,82 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 
 export async function signup(formData: FormData) {
-  const supabase = await createClient()
+  console.log('=== SIGNUP PROCESS STARTED ===')
 
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const name = formData.get('name') as string
-  const ciUpdates = formData.get('ci_updates') === 'true'
-  const bibleYear = formData.get('bible_year') === 'true'
-  const skillShare = formData.get('skill_share') === 'true'
-  const referral = formData.get('referral') as string
+  try {
+    const supabase = await createClient()
+    console.log('Supabase client created successfully')
 
-  // Sign up the user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name,
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    const name = formData.get('name') as string
+    const ciUpdates = formData.get('ci_updates') === 'true'
+    const bibleYear = formData.get('bible_year') === 'true'
+    const skillShare = formData.get('skill_share') === 'true'
+    const referral = formData.get('referral') as string
+
+    console.log('Form data extracted:', { email, name, ciUpdates, bibleYear, skillShare, referral })
+
+    // Server-side password validation
+    const passwordRules = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    }
+
+    const allRulesMet = Object.values(passwordRules).every(rule => rule)
+    console.log('Password validation rules:', passwordRules, 'All met:', allRulesMet)
+
+    if (!allRulesMet) {
+      console.log('Password validation failed')
+      return {
+        error: 'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character'
+      }
+    }
+
+    // Sign up the user - the handle_new_user trigger will auto-create the profile
+    console.log('Attempting to sign up user with email:', email)
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          ci_updates: ciUpdates,
+          bible_year: bibleYear,
+          skill_share: skillShare,
+          referral: referral || null,
+        },
       },
-    },
-  })
+    })
 
-  if (authError) {
-    redirect('/signup?message=' + encodeURIComponent(authError.message))
-  }
+    if (authError) {
+      console.error('Auth signup error:', authError)
+      return { error: authError.message }
+    }
 
-  // Create user profile with preferences
-  if (authData.user) {
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .insert({
-        user_id: authData.user.id,
-        name,
-        email,
-        ci_updates: ciUpdates,
-        bible_year: bibleYear,
-        skill_share: skillShare,
-        referral: referral || null,
-      })
+    console.log('User signup successful, user ID:', authData.user?.id)
+    console.log('Profile auto-created by database trigger')
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError)
-      // Continue anyway - the auth account was created
+    // Supabase may require email confirmation - redirect with success message
+    console.log('Signup complete, redirecting to login')
+    redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account before logging in'))
+  } catch (error) {
+    console.error('=== UNEXPECTED SIGNUP ERROR ===')
+    console.error('Error type:', error?.constructor?.name)
+    console.error('Error message:', error instanceof Error ? error.message : String(error))
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('Full error object:', JSON.stringify(error, null, 2))
+
+    // If it's a redirect error, let it through (Next.js redirects throw)
+    if (error instanceof Error && error.message?.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+
+    return {
+      error: `Signup failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again or contact support.`
     }
   }
-
-  // Supabase may require email confirmation - redirect with success message
-  redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account before logging in'))
 }
