@@ -236,15 +236,19 @@ ALTER TABLE public.day_comments ENABLE ROW LEVEL SECURITY;
 -- User profiles policies
 DROP POLICY IF EXISTS "Users can view all profiles" ON public.user_profiles;
 CREATE POLICY "Users can view all profiles" ON public.user_profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.user_profiles;
+CREATE POLICY "Users can insert own profile" ON public.user_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Users can update own profile" ON public.user_profiles;
-CREATE POLICY "Users can update own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own profile" ON public.user_profiles FOR UPDATE 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- User roles policies
 DROP POLICY IF EXISTS "Users can view all roles" ON public.user_roles;
 CREATE POLICY "Users can view all roles" ON public.user_roles FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Only admins can manage roles" ON public.user_roles;
 CREATE POLICY "Only admins can manage roles" ON public.user_roles FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND is_admin = true)
+  public.is_admin(auth.uid())
 );
 
 -- Reading plans policies
@@ -252,7 +256,7 @@ DROP POLICY IF EXISTS "Anyone can view plans" ON public.reading_plans;
 CREATE POLICY "Anyone can view plans" ON public.reading_plans FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Only admins can manage plans" ON public.reading_plans;
 CREATE POLICY "Only admins can manage plans" ON public.reading_plans FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND is_admin = true)
+  public.is_admin(auth.uid())
 );
 
 -- Plan days policies
@@ -260,7 +264,7 @@ DROP POLICY IF EXISTS "Anyone can view plan days" ON public.plan_days;
 CREATE POLICY "Anyone can view plan days" ON public.plan_days FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Only admins can manage plan days" ON public.plan_days;
 CREATE POLICY "Only admins can manage plan days" ON public.plan_days FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND is_admin = true)
+  public.is_admin(auth.uid())
 );
 
 -- Plan subscriptions policies
@@ -280,7 +284,7 @@ DROP POLICY IF EXISTS "Anyone can view meetings" ON public.meetings;
 CREATE POLICY "Anyone can view meetings" ON public.meetings FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Only admins can manage meetings" ON public.meetings;
 CREATE POLICY "Only admins can manage meetings" ON public.meetings FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND is_admin = true)
+  public.is_admin(auth.uid())
 );
 
 -- Meeting attendees policies
@@ -345,11 +349,31 @@ CREATE POLICY "Authenticated users can cache verses" ON public.bible_verses FOR 
 -- FUNCTIONS & TRIGGERS
 -- ============================================
 
+-- Function to check if user is admin (bypasses RLS to prevent infinite recursion)
+CREATE OR REPLACE FUNCTION public.is_admin(user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.user_roles 
+    WHERE user_roles.user_id = is_admin.user_id 
+    AND is_admin = true
+  );
+END;
+$$;
+
 -- Function to handle new user signup and create profile
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
 BEGIN
-  INSERT INTO public.user_profiles (user_id, email, full_name, ci_updates, bible_year, skill_share, referral)
+  INSERT INTO user_profiles (user_id, email, full_name, ci_updates, bible_year, skill_share, referral)
   VALUES (
     NEW.id,
     NEW.email,
@@ -361,13 +385,38 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Trigger for new user signup
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Function to sync user metadata updates
+CREATE OR REPLACE FUNCTION public.sync_user_metadata()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  UPDATE user_profiles
+  SET 
+    full_name = NEW.raw_user_meta_data->>'full_name',
+    updated_at = NOW()
+  WHERE user_id = NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+-- Trigger for user metadata updates
+DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
+CREATE TRIGGER on_auth_user_updated
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW
+  WHEN (OLD.raw_user_meta_data IS DISTINCT FROM NEW.raw_user_meta_data)
+  EXECUTE FUNCTION public.sync_user_metadata();
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()

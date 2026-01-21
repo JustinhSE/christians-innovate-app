@@ -64,9 +64,16 @@ export async function signup(formData: FormData) {
     console.log('User signup successful, user ID:', authData.user?.id)
     console.log('Profile auto-created by database trigger')
 
-    // Supabase may require email confirmation - redirect with success message
-    console.log('Signup complete, redirecting to login')
-    redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account before logging in'))
+    // Check if email confirmation is required
+    if (authData.user && authData.user.confirmed_at) {
+      // User is confirmed, redirect to dashboard
+      console.log('User confirmed, redirecting to dashboard')
+      redirect('/dashboard')
+    } else {
+      // Email confirmation required
+      console.log('Signup complete, redirecting to login')
+      redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account before logging in'))
+    }
   } catch (error) {
     console.error('=== UNEXPECTED SIGNUP ERROR ===')
     console.error('Error type:', error?.constructor?.name)

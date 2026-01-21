@@ -55,8 +55,8 @@ export function DayCard({ day, isCompleted }: DayCardProps) {
           <button
             type="submit"
             className={`px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap ${isCompleted
-                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
               }`}
           >
             {isCompleted ? 'Completed' : 'Mark as Read'}
@@ -68,7 +68,7 @@ export function DayCard({ day, isCompleted }: DayCardProps) {
       <div className="border-t border-gray-200">
         <VerseDisplay
           reference={day.scripture_reference}
-          translation="NIV"
+          translation="KJV"
           truncate={true}
           maxLength={120}
         />

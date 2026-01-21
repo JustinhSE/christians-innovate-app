@@ -113,8 +113,11 @@ export default async function DayViewPage({
           <h2 className="text-xl font-bold text-gray-900 mb-4">Scripture</h2>
           <VerseDisplay
             reference={day.scripture_reference}
-            translation="NIV"
+            translation="KJV"
             showVersionSelector={true}
+            showViewModeToggle={true}
+            defaultViewMode="verse-by-verse"
+            usePreferredTranslation={true}
           />
         </div>
 

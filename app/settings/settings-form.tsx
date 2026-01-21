@@ -119,7 +119,7 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
       }
 
       // Update user_profiles (avatar, and full_name for immediate consistency)
-      const { error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
         .update({
           full_name: fullName.trim() || null,
@@ -139,11 +139,19 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
+        .select()
 
       if (profileError) {
-        console.error('Profile update error:', profileError)
-        throw profileError
+        console.error('Profile update error:', {
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint,
+          code: profileError.code
+        })
+        throw new Error(profileError.message || 'Failed to update profile')
       }
+
+      console.log('Profile updated successfully:', profileData)
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
       router.refresh()
