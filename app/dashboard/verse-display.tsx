@@ -31,7 +31,8 @@ interface VerseByVerseViewProps {
 }
 
 interface ParagraphViewProps {
-  verses: VerseData[]
+  reference: string
+  verses: IndividualVerse[]
   selectedVersion: TranslationKey
 }
 
@@ -101,48 +102,67 @@ function VerseByVerseView({ reference, verses, selectedVersion }: VerseByVerseVi
   )
 }
 
-function ParagraphView({ verses, selectedVersion }: ParagraphViewProps) {
+function ParagraphView({ reference, verses, selectedVersion }: ParagraphViewProps) {
+  if (verses.length === 0) {
+    return (
+      <div className="py-4 px-4 sm:px-6 bg-blue-50 border-l-4 border-blue-500 rounded">
+        <div className="flex items-center gap-2 text-gray-600">
+          <BookOpen className="h-4 w-4" />
+          <span className="text-sm italic">No verses available</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Group verses by chapter
+  const chapterGroups = new Map<number, IndividualVerse[]>()
+  verses.forEach(verse => {
+    const chapter = verse.chapterNumber || 1
+    if (!chapterGroups.has(chapter)) {
+      chapterGroups.set(chapter, [])
+    }
+    chapterGroups.get(chapter)!.push(verse)
+  })
+
   return (
-    <>
-      {verses.map((verse, index) => {
-        // Apply parsing to ensure clean text
-        const parsedText = parseBibleText(verse.text, selectedVersion)
-        // Text format is: "Chapter X\n[text]\n\nChapter Y\n[text]"
-        // Split by double newline to separate chapters
-        const chapters = parsedText.split('\n\n')
+    <div className="space-y-4">
+      {Array.from(chapterGroups.entries()).map(([chapterNum, chapterVerses]) => {
+        // Combine all verse texts for this chapter
+        const combinedText = chapterVerses.map(v => v.text).join(' ')
+
+        // Split into paragraphs (every 3-4 sentences)
+        const sentences = combinedText.match(/[^.!?]+[.!?]+/g) || [combinedText]
+        const paragraphs: string[] = []
+        let currentParagraph = ''
+
+        sentences.forEach((sentence, idx) => {
+          currentParagraph += sentence
+          // Create a new paragraph every 3-4 sentences
+          if ((idx + 1) % 4 === 0 || currentParagraph.length > 250) {
+            paragraphs.push(currentParagraph.trim())
+            currentParagraph = ''
+          }
+        })
+
+        // Add remaining text as final paragraph
+        if (currentParagraph.trim()) {
+          paragraphs.push(currentParagraph.trim())
+        }
 
         return (
-          <div key={index} className="py-4 px-4 sm:px-6 bg-blue-50 border-l-4 border-blue-500 rounded">
+          <div key={chapterNum} className="py-4 px-4 sm:px-6 bg-blue-50 border-l-4 border-blue-500 rounded">
             <div className="flex items-start gap-3">
               <BookOpen className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-xs sm:text-sm text-blue-700 font-semibold mb-2">
-                  {verse.reference}
-                </p>
-                <div className="text-sm sm:text-base text-gray-800 leading-relaxed mb-2 space-y-6">
-                  {chapters.map((chapter, i) => {
-                    // Each chapter is "Chapter X\n[text]"
-                    const lines = chapter.split('\n')
-                    const isChapterFormat = lines[0]?.startsWith('Chapter ')
-
-                    if (isChapterFormat) {
-                      const heading = lines[0]
-                      const content = lines.slice(1).join(' ')
-                      return (
-                        <div key={i}>
-                          <div className="font-bold text-blue-700 text-lg mb-3">
-                            {heading}
-                          </div>
-                          <p>{content}</p>
-                        </div>
-                      )
-                    }
-
-                    // Single verse/passage without chapter heading
-                    return <p key={i}>{chapter}</p>
-                  })}
+                <div className="font-bold text-blue-700 text-lg mb-3">
+                  Chapter {chapterNum}
                 </div>
-                <p className="text-xs sm:text-sm text-blue-600 font-medium">
+                <div className="text-sm sm:text-base text-gray-800 leading-relaxed space-y-4">
+                  {paragraphs.map((para, pIdx) => (
+                    <p key={pIdx}>{para}</p>
+                  ))}
+                </div>
+                <p className="text-xs sm:text-sm text-blue-600 font-medium mt-3">
                   ({selectedVersion})
                 </p>
               </div>
@@ -150,7 +170,7 @@ function ParagraphView({ verses, selectedVersion }: ParagraphViewProps) {
           </div>
         )
       })}
-    </>
+    </div>
   )
 }
 
@@ -339,7 +359,8 @@ export function VerseDisplay({
         />
       ) : (
         <ParagraphView
-          verses={verses}
+          reference={reference}
+          verses={individualVerses}
           selectedVersion={selectedVersion}
         />
       )}
