@@ -67,6 +67,8 @@ function VerseByVerseView({ reference, verses, selectedVersion }: VerseByVerseVi
           </p>
           <div className="space-y-3">
             {verses.map((verse, idx) => {
+              // if the verse.versenumber is null dont render it
+              if (verse.verseNumber === null) return null
               // Check if this is the start of a new chapter
               const isNewChapter = verse.chapterNumber &&
                 (idx === 0 || verse.chapterNumber !== verses[idx - 1].chapterNumber)
@@ -154,7 +156,7 @@ function ParagraphView({ verses, selectedVersion }: ParagraphViewProps) {
 
 export function VerseDisplay({
   reference,
-  translation: initialTranslation = 'KJV',
+  translation: initialTranslation = 'NLT',
   truncate = false,
   maxLength = 150,
   showVersionSelector = false,
@@ -272,7 +274,7 @@ export function VerseDisplay({
       </div>
     )
   }
-
+  debugger
   // For full view, display each verse separately with optional version selector
   return (
     <div className="space-y-4">
@@ -329,7 +331,7 @@ export function VerseDisplay({
         )}
       </div>
 
-      {viewMode === 'verse-by-verse' ? (
+      {viewMode === 'verse-by-verse' && individualVerses.length > 0 ? (
         <VerseByVerseView
           reference={reference}
           verses={individualVerses}
