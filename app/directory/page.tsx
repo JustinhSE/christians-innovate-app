@@ -203,7 +203,7 @@ export default async function DirectoryPage() {
                 </div>
               )}
 
-              {/* Social Links - Show top 3 */}
+              {/* Social Links */}
               {(() => {
                 const socialLinks = [
                   { url: profile.linkedin_url, icon: Linkedin, label: 'LinkedIn', color: 'text-blue-600' },
@@ -216,7 +216,7 @@ export default async function DirectoryPage() {
                   <div className="pt-3 border-t border-gray-100">
                     <p className="text-xs font-semibold text-gray-700 mb-2">Connect</p>
                     <div className="flex gap-2">
-                      {socialLinks.slice(0, 3).map((link, index) => {
+                      {socialLinks.map((link, index) => {
                         const Icon = link.icon
                         return (
                           <a

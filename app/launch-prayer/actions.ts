@@ -30,8 +30,12 @@ export async function createPost(formData: FormData) {
     })
 
   if (error) {
+    console.error('Error creating post:', error)
     return { error: error.message }
   }
+
+  console.log('Post created successfully for user:', user.id)
+  console.log('Post details:', { type, title, is_active: true })
 
   revalidatePath('/launch-prayer')
   revalidatePath('/dashboard')

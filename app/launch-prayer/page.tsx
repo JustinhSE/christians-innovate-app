@@ -23,7 +23,7 @@ export default async function LaunchPrayerPage() {
   const isAdmin = userRole?.is_admin || false
 
   // Fetch all posts with user profiles
-  const { data: allPosts } = await supabase
+  const { data: allPosts, error: fetchError } = await supabase
     .from('launch_prayer_posts')
     .select(`
       *,
@@ -33,6 +33,16 @@ export default async function LaunchPrayerPage() {
       )
     `)
     .order('created_at', { ascending: false })
+
+  // Log any fetch errors for debugging
+  if (fetchError) {
+    console.error('Error fetching launch prayer posts:', fetchError)
+  }
+
+  // Log the raw data for debugging
+  console.log('Fetched posts count:', allPosts?.length || 0)
+  console.log('User ID:', user.id)
+  console.log('Is Admin:', isAdmin)
 
   // Fetch user's own posts (including inactive ones)
   const userPosts = allPosts?.filter(post => post.user_id === user.id) || []
@@ -44,8 +54,13 @@ export default async function LaunchPrayerPage() {
     !post.is_hidden
   ) || []
 
+  console.log('User posts:', userPosts.length)
+  console.log('Community posts:', communityPosts.length)
+
   // If admin, show all posts
   const displayPosts = isAdmin ? (allPosts || []) : [...userPosts, ...communityPosts]
+
+  console.log('Display posts:', displayPosts.length)
 
   // Calculate counts for stats
   const launchCount = displayPosts.filter(p => p.type === 'launch' && p.is_active && !p.is_hidden).length
@@ -89,9 +104,18 @@ export default async function LaunchPrayerPage() {
           <CreatePostForm />
         </div>
 
+        {/* Debug Info */}
+        {fetchError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600 font-semibold">Error fetching posts:</p>
+            <p className="text-xs text-red-500 mt-1">{fetchError.message}</p>
+          </div>
+        )}
+
         {/* Posts List */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Community Updates</h2>
+          <p className="text-sm text-gray-500 mb-2">Total posts: {displayPosts.length}</p>
           <PostList posts={displayPosts} currentUserId={user.id} isAdmin={isAdmin} />
         </div>
       </div>
