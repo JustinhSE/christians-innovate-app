@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getBibleVerse, getBibleVersesIndividually } from './verse-actions'
+import { getBibleVersesIndividually } from './verse-actions'
 import { getUserPreferredTranslation, saveUserPreferredTranslation } from './user-preferences-actions'
 import type { TranslationKey, IndividualVerse } from '@/utils/bible-api'
 import { parseBibleText } from '@/utils/bible-text-parser'
@@ -16,12 +16,6 @@ interface VerseDisplayProps {
   showViewModeToggle?: boolean
   defaultViewMode?: 'paragraph' | 'verse-by-verse'
   usePreferredTranslation?: boolean
-}
-
-interface VerseData {
-  text: string
-  html: string
-  reference: string
 }
 
 interface VerseByVerseViewProps {
@@ -184,7 +178,6 @@ export function VerseDisplay({
   defaultViewMode = 'verse-by-verse',
   usePreferredTranslation = false
 }: VerseDisplayProps) {
-  const [verses, setVerses] = useState<VerseData[]>([])
   const [individualVerses, setIndividualVerses] = useState<IndividualVerse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -219,28 +212,17 @@ export function VerseDisplay({
         // Split by comma to handle multiple references
         const references = reference.split(',').map(ref => ref.trim()).filter(ref => ref.length > 0)
 
-        // Fetch paragraph format
-        const results = await Promise.all(
-          references.map(ref => getBibleVerse(ref, selectedVersion))
-        )
-        const validResults = results.filter(result => result !== null) as VerseData[]
-
-        // Fetch verse-by-verse format (only for single reference, not comma-separated)
-        if (!truncate && references.length === 1) {
+        // Fetch verse-by-verse format
+        if (references.length === 1) {
           const individualResult = await getBibleVersesIndividually(references[0], selectedVersion)
           if (individualResult) {
             setIndividualVerses(individualResult.verses)
           } else {
             setIndividualVerses([])
+            setError(true)
           }
         } else {
           setIndividualVerses([])
-        }
-
-        if (validResults.length > 0) {
-          setVerses(validResults)
-        } else {
-          setError(true)
         }
       } catch (err) {
         console.error('Error loading verses:', err)
@@ -262,18 +244,18 @@ export function VerseDisplay({
     )
   }
 
-  if (error || verses.length === 0) {
-    return (
-      <div className="flex items-center gap-2 text-gray-500 py-4">
-        <BookOpen className="h-4 w-4" />
-        <span className="text-sm italic">Verse not available</span>
-      </div>
-    )
-  }
-
   // For truncated view, use plain text
   if (truncate) {
-    const combinedText = verses.map(v => parseBibleText(v.text, selectedVersion)).join(' ... ')
+    if (individualVerses.length === 0) {
+      return (
+        <div className="flex items-center gap-2 text-gray-500 py-4">
+          <BookOpen className="h-4 w-4" />
+          <span className="text-sm italic">Verse not available</span>
+        </div>
+      )
+    }
+
+    const combinedText = individualVerses.map(v => v.text).join(' ')
     const displayText = combinedText.length > maxLength
       ? combinedText.substring(0, maxLength) + '...'
       : combinedText
@@ -287,14 +269,23 @@ export function VerseDisplay({
               {displayText}
             </p>
             <p className="text-xs sm:text-sm text-blue-700 font-medium">
-              {verses.map(v => v.reference).join(', ')} ({selectedVersion})
+              {reference} ({selectedVersion})
             </p>
           </div>
         </div>
       </div>
     )
   }
-  debugger
+
+  if (error || individualVerses.length === 0) {
+    return (
+      <div className="flex items-center gap-2 text-gray-500 py-4">
+        <BookOpen className="h-4 w-4" />
+        <span className="text-sm italic">Verse not available</span>
+      </div>
+    )
+  }
+
   // For full view, display each verse separately with optional version selector
   return (
     <div className="space-y-4">
