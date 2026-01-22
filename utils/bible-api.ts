@@ -20,13 +20,15 @@ export type TranslationKey = keyof typeof BIBLE_TRANSLATIONS
 export interface IndividualVerse {
   verseNumber: number
   chapterNumber?: number
+  bookName?: string
   text: string
 }
 
 /**
  * Fetch verses individually with verse numbers (for verse-by-verse display)
+ * Supports multiple references separated by commas (e.g., "Psalm 8, Proverbs 1")
  * @param translation - Translation key (e.g., 'KJV')
- * @param reference - Bible reference (e.g., 'John 3:16' or 'Genesis 1:1-3')
+ * @param reference - Bible reference (e.g., 'John 3:16' or 'Psalm 8, Proverbs 1')
  * @returns Array of individual verses with their numbers
  */
 export async function fetchBibleVersesIndividually(
@@ -35,6 +37,56 @@ export async function fetchBibleVersesIndividually(
 ): Promise<{ verses: IndividualVerse[]; reference: string } | null> {
   const translationCode = BIBLE_TRANSLATIONS[translation]
 
+  // Split by commas to handle multiple references
+  const references = reference.split(',').map(ref => ref.trim()).filter(ref => ref.length > 0)
+
+  console.log('Processing references:', references)
+
+  // If multiple references, fetch each and combine
+  if (references.length > 1) {
+    const allVerses: IndividualVerse[] = []
+
+    for (const ref of references) {
+      console.log('Fetching reference:', ref)
+      const result = await fetchSingleReference(translationCode, ref, translation)
+      console.log('Result for', ref, ':', result ? `${result.length} verses` : 'null')
+      if (result) {
+        allVerses.push(...result)
+      }
+    }
+
+    console.log('Total verses fetched:', allVerses.length)
+
+    if (allVerses.length === 0) {
+      return null
+    }
+
+    return {
+      verses: allVerses,
+      reference
+    }
+  }
+
+  // Single reference
+  const verses = await fetchSingleReference(translationCode, reference, translation)
+  if (!verses) {
+    return null
+  }
+
+  return {
+    verses,
+    reference
+  }
+}
+
+/**
+ * Fetch a single bible reference
+ */
+async function fetchSingleReference(
+  translationCode: string,
+  reference: string,
+  translation: TranslationKey
+): Promise<IndividualVerse[] | null> {
   // Parse the scripture reference
   const parsed = parseScriptureReference(reference)
   if (!parsed) {
@@ -69,16 +121,12 @@ export async function fetchBibleVersesIndividually(
       }
 
       // Parse each verse individually with chapter numbers
-      const individualVerses: IndividualVerse[] = verses.map(v => ({
+      return verses.map(v => ({
         chapterNumber: v.chapter,
         verseNumber: v.verse_start,
+        bookName: parsed.book,
         text: parseBibleText(v.text, translation)
       }))
-
-      return {
-        verses: individualVerses,
-        reference,
-      }
     }
 
     // Build query for single chapter or verse range
@@ -115,16 +163,12 @@ export async function fetchBibleVersesIndividually(
     }
 
     // Parse each verse individually
-    const individualVerses: IndividualVerse[] = verses.map(v => ({
+    return verses.map(v => ({
       chapterNumber: v.chapter,
       verseNumber: v.verse_start,
+      bookName: parsed.book,
       text: parseBibleText(v.text, translation)
     }))
-
-    return {
-      verses: individualVerses,
-      reference,
-    }
   } catch (error) {
     if (error instanceof Error) {
       console.error('Error fetching Bible verses individually:', error.message)

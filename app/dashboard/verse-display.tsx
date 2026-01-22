@@ -40,6 +40,21 @@ const AVAILABLE_VERSIONS: { value: TranslationKey; label: string }[] = [
   { value: 'MSG', label: 'MSG - The Message' },
 ]
 
+// Helper function to render text with HTML line breaks
+function renderTextWithBreaks(text: string) {
+  // Split by <br>, <br/>, or </br> tags
+  const parts = text.split(/(<br\s*\/?>|<\/br>)/gi)
+
+  return parts.map((part, idx) => {
+    // If it's a br tag, render actual line break
+    if (part.match(/^<br\s*\/?>|<\/br>$/i)) {
+      return <br key={idx} />
+    }
+    // Otherwise render the text
+    return part
+  })
+}
+
 function VerseByVerseView({ reference, verses, selectedVersion }: VerseByVerseViewProps) {
   if (verses.length === 0) {
     return (
@@ -64,14 +79,29 @@ function VerseByVerseView({ reference, verses, selectedVersion }: VerseByVerseVi
             {verses.map((verse, idx) => {
               // if the verse.versenumber is null dont render it
               if (verse.verseNumber === null) return null
+
+              // Check if this is the start of a new book
+              const isNewBook = verse.bookName &&
+                (idx === 0 || verse.bookName !== verses[idx - 1].bookName)
+
               // Check if this is the start of a new chapter
               const isNewChapter = verse.chapterNumber &&
                 (idx === 0 || verse.chapterNumber !== verses[idx - 1].chapterNumber)
 
               return (
-                <div key={`${verse.chapterNumber || 1}-${verse.verseNumber}`}>
-                  {isNewChapter && verse.chapterNumber && (
+                <div key={`${verse.bookName || ''}-${verse.chapterNumber || 1}-${verse.verseNumber}`}>
+                  {isNewBook && verse.bookName && (
+                    <div className="font-bold text-blue-800 text-xl mt-8 first:mt-0 mb-4 pb-2 border-b-2 border-blue-300">
+                      {verse.bookName}
+                    </div>
+                  )}
+                  {isNewChapter && verse.chapterNumber && !isNewBook && (
                     <div className="font-bold text-blue-700 text-lg mt-6 first:mt-0 mb-3">
+                      Chapter {verse.chapterNumber}
+                    </div>
+                  )}
+                  {isNewChapter && verse.chapterNumber && isNewBook && (
+                    <div className="font-semibold text-blue-700 text-base mb-3">
                       Chapter {verse.chapterNumber}
                     </div>
                   )}
@@ -80,7 +110,7 @@ function VerseByVerseView({ reference, verses, selectedVersion }: VerseByVerseVi
                       {verse.verseNumber}
                     </span>
                     <p className="text-sm sm:text-base text-gray-800 leading-relaxed">
-                      {verse.text}
+                      {renderTextWithBreaks(verse.text)}
                     </p>
                   </div>
                 </div>
@@ -108,62 +138,77 @@ function ParagraphView({ reference, verses, selectedVersion }: ParagraphViewProp
     )
   }
 
-  // Group verses by chapter
-  const chapterGroups = new Map<number, IndividualVerse[]>()
+  // Group verses by book and chapter
+  const bookChapterGroups = new Map<string, Map<number, IndividualVerse[]>>()
   verses.forEach(verse => {
+    const book = verse.bookName || 'Unknown'
     const chapter = verse.chapterNumber || 1
-    if (!chapterGroups.has(chapter)) {
-      chapterGroups.set(chapter, [])
+
+    if (!bookChapterGroups.has(book)) {
+      bookChapterGroups.set(book, new Map())
     }
-    chapterGroups.get(chapter)!.push(verse)
+    const chapterMap = bookChapterGroups.get(book)!
+    if (!chapterMap.has(chapter)) {
+      chapterMap.set(chapter, [])
+    }
+    chapterMap.get(chapter)!.push(verse)
   })
 
   return (
-    <div className="space-y-4">
-      {Array.from(chapterGroups.entries()).map(([chapterNum, chapterVerses]) => {
-        // Combine all verse texts for this chapter
-        const combinedText = chapterVerses.map(v => v.text).join(' ')
-
-        // Split into paragraphs (every 3-4 sentences)
-        const sentences = combinedText.match(/[^.!?]+[.!?]+/g) || [combinedText]
-        const paragraphs: string[] = []
-        let currentParagraph = ''
-
-        sentences.forEach((sentence, idx) => {
-          currentParagraph += sentence
-          // Create a new paragraph every 3-4 sentences
-          if ((idx + 1) % 4 === 0 || currentParagraph.length > 250) {
-            paragraphs.push(currentParagraph.trim())
-            currentParagraph = ''
-          }
-        })
-
-        // Add remaining text as final paragraph
-        if (currentParagraph.trim()) {
-          paragraphs.push(currentParagraph.trim())
-        }
-
-        return (
-          <div key={chapterNum} className="py-4 px-4 sm:px-6 bg-blue-50 border-l-4 border-blue-500 rounded">
-            <div className="flex items-start gap-3">
-              <BookOpen className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <div className="font-bold text-blue-700 text-lg mb-3">
-                  Chapter {chapterNum}
-                </div>
-                <div className="text-sm sm:text-base text-gray-800 leading-relaxed space-y-4">
-                  {paragraphs.map((para, pIdx) => (
-                    <p key={pIdx}>{para}</p>
-                  ))}
-                </div>
-                <p className="text-xs sm:text-sm text-blue-600 font-medium mt-3">
-                  ({selectedVersion})
-                </p>
-              </div>
+    <div className="space-y-6">
+      {Array.from(bookChapterGroups.entries()).map(([bookName, chapterMap]) => (
+        <div key={bookName}>
+          {bookChapterGroups.size > 1 && (
+            <div className="font-bold text-blue-800 text-xl mb-4 pb-2 border-b-2 border-blue-300">
+              {bookName}
             </div>
-          </div>
-        )
-      })}
+          )}
+          {Array.from(chapterMap.entries()).map(([chapterNum, chapterVerses]) => {
+            // Combine all verse texts for this chapter
+            const combinedText = chapterVerses.map(v => v.text).join(' ')
+
+            // Split into paragraphs (every 3-4 sentences)
+            const sentences = combinedText.match(/[^.!?]+[.!?]+/g) || [combinedText]
+            const paragraphs: string[] = []
+            let currentParagraph = ''
+
+            sentences.forEach((sentence, idx) => {
+              currentParagraph += sentence
+              // Create a new paragraph every 3-4 sentences
+              if ((idx + 1) % 4 === 0 || currentParagraph.length > 250) {
+                paragraphs.push(currentParagraph.trim())
+                currentParagraph = ''
+              }
+            })
+
+            // Add remaining text as final paragraph
+            if (currentParagraph.trim()) {
+              paragraphs.push(currentParagraph.trim())
+            }
+
+            return (
+              <div key={chapterNum} className="py-4 px-4 sm:px-6 bg-blue-50 border-l-4 border-blue-500 rounded mb-4">
+                <div className="flex items-start gap-3">
+                  <BookOpen className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-bold text-blue-700 text-lg mb-3">
+                      Chapter {chapterNum}
+                    </div>
+                    <div className="text-sm sm:text-base text-gray-800 leading-relaxed space-y-4">
+                      {paragraphs.map((para, pIdx) => (
+                        <p key={pIdx}>{renderTextWithBreaks(para)}</p>
+                      ))}
+                    </div>
+                    <p className="text-xs sm:text-sm text-blue-600 font-medium mt-3">
+                      ({selectedVersion})
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
     </div>
   )
 }
@@ -209,20 +254,14 @@ export function VerseDisplay({
       setError(false)
 
       try {
-        // Split by comma to handle multiple references
-        const references = reference.split(',').map(ref => ref.trim()).filter(ref => ref.length > 0)
+        // Fetch verses for the entire reference (supports comma-separated references)
+        const individualResult = await getBibleVersesIndividually(reference, selectedVersion)
 
-        // Fetch verse-by-verse format
-        if (references.length === 1) {
-          const individualResult = await getBibleVersesIndividually(references[0], selectedVersion)
-          if (individualResult) {
-            setIndividualVerses(individualResult.verses)
-          } else {
-            setIndividualVerses([])
-            setError(true)
-          }
+        if (individualResult) {
+          setIndividualVerses(individualResult.verses)
         } else {
           setIndividualVerses([])
+          setError(true)
         }
       } catch (err) {
         console.error('Error loading verses:', err)
