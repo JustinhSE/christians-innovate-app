@@ -231,7 +231,7 @@ export async function fetchBibleVersesIndividually(
     // Build query for single chapter or verse range
     let query = supabase
       .from('bible_verses')
-      .select('text, verse_start')
+      .select('chapter, text, verse_start')
       .eq('translation', translationCode)
       .eq('book', parsed.book)
       .eq('chapter', parsed.chapter)
@@ -262,6 +262,7 @@ export async function fetchBibleVersesIndividually(
 
     // Parse each verse individually
     const individualVerses: IndividualVerse[] = verses.map(v => ({
+      chapterNumber: v.chapter,
       verseNumber: v.verse_start,
       text: parseBibleText(v.text, translation)
     }))
