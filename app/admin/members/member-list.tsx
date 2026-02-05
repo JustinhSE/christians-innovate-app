@@ -2,7 +2,7 @@
 
 import { toggleAdminStatus } from './actions'
 import { useState } from 'react'
-import { Shield, ShieldOff, User, Calendar, Mail, CheckCircle, XCircle, Download } from 'lucide-react'
+import { Shield, ShieldOff, User, Calendar, Mail, CheckCircle, XCircle, Download, Copy } from 'lucide-react'
 import Image from 'next/image'
 
 type Member = {
@@ -95,6 +95,16 @@ function downloadCSV(members: Member[]): void {
   URL.revokeObjectURL(url)
 }
 
+async function copyEmailsToClipboard(members: Member[]): Promise<void> {
+  const emails = members.map(m => m.email).join(', ')
+  try {
+    await navigator.clipboard.writeText(emails)
+    alert(`Copied ${members.length} email addresses to clipboard!`)
+  } catch (err) {
+    alert('Failed to copy emails to clipboard')
+  }
+}
+
 export function MemberList({ members }: { members: Member[] }) {
   const [processingId, setProcessingId] = useState<string | null>(null)
 
@@ -129,14 +139,24 @@ export function MemberList({ members }: { members: Member[] }) {
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
         <h3 className="text-base sm:text-lg font-semibold text-gray-900">All Members ({members.length})</h3>
-        <button
-          onClick={() => downloadCSV(members)}
-          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
-        >
-          <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">Export CSV</span>
-          <span className="sm:hidden">Export</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => copyEmailsToClipboard(members)}
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
+          >
+            <Copy className="h-4 w-4" />
+            <span className="hidden sm:inline">Copy Emails</span>
+            <span className="sm:hidden">Copy</span>
+          </button>
+          <button
+            onClick={() => downloadCSV(members)}
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">Export</span>
+          </button>
+        </div>
       </div>
 
       <div className="divide-y divide-gray-200">
