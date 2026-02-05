@@ -2,7 +2,7 @@
 
 import { toggleAdminStatus } from './actions'
 import { useState } from 'react'
-import { Shield, ShieldOff, User, Calendar, Mail, CheckCircle, XCircle } from 'lucide-react'
+import { Shield, ShieldOff, User, Calendar, Mail, CheckCircle, XCircle, Download } from 'lucide-react'
 import Image from 'next/image'
 
 type Member = {
@@ -44,6 +44,57 @@ function getAvatarColor(userId: string): string {
   return colors[index]
 }
 
+function escapeCSV(value: string | null | boolean | undefined): string {
+  if (value === null || value === undefined) return ''
+  const stringValue = String(value)
+  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+    return `"${stringValue.replace(/"/g, '""')}"`
+  }
+  return stringValue
+}
+
+function generateCSV(members: Member[]): string {
+  const headers = [
+    'Email',
+    'Full Name',
+    'Joined Date',
+    'Is Admin',
+    'CI Updates',
+    'Bible in a Year',
+    'Skill Share',
+    'Reading Plan Updates',
+    'Referral'
+  ]
+
+  const rows = members.map(member => [
+    escapeCSV(member.email),
+    escapeCSV(member.full_name),
+    escapeCSV(new Date(member.created_at).toLocaleDateString()),
+    escapeCSV(member.user_roles?.[0]?.is_admin || false),
+    escapeCSV(member.ci_updates || false),
+    escapeCSV(member.bible_year || false),
+    escapeCSV(member.skill_share || false),
+    escapeCSV(member.reading_plan_updates || false),
+    escapeCSV(member.referral)
+  ])
+
+  return [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+}
+
+function downloadCSV(members: Member[]): void {
+  const csv = generateCSV(members)
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  const date = new Date().toISOString().split('T')[0]
+  link.href = url
+  link.download = `members-${date}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 export function MemberList({ members }: { members: Member[] }) {
   const [processingId, setProcessingId] = useState<string | null>(null)
 
@@ -76,8 +127,16 @@ export function MemberList({ members }: { members: Member[] }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gray-50">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
         <h3 className="text-base sm:text-lg font-semibold text-gray-900">All Members ({members.length})</h3>
+        <button
+          onClick={() => downloadCSV(members)}
+          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+        >
+          <Download className="h-4 w-4" />
+          <span className="hidden sm:inline">Export CSV</span>
+          <span className="sm:hidden">Export</span>
+        </button>
       </div>
 
       <div className="divide-y divide-gray-200">
