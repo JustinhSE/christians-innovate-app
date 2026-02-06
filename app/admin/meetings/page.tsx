@@ -43,11 +43,11 @@ export default async function MeetingsPage() {
   const userIds = [...new Set(attendanceData?.map(a => a.user_id) || [])]
   const { data: profiles } = await supabase
     .from('user_profiles')
-    .select('id, full_name, email, avatar_url')
-    .in('id', userIds)
+    .select('user_id, full_name, email, avatar_url')
+    .in('user_id', userIds)
 
   // Create a map of user profiles
-  const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+  const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || [])
 
   // Combine the data
   const meetingsWithCounts = meetings?.map(meeting => {
