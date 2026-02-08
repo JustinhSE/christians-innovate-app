@@ -68,7 +68,7 @@ export function MobileMenu({ userEmail, isAdmin }: { userEmail: string; isAdmin:
 
               {isAdmin && (
                 <Link
-                  href="/admin/plans"
+                  href="/admin/dashboard"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 text-blue-600 hover:text-blue-800 font-medium py-2"
                 >
