@@ -63,9 +63,9 @@ export default async function AdminDashboardPage() {
 
       {/* Overall Stats */}
       <OverallStatsCards
-        totalUniqueSubscribers={overallStats.totalUniqueSubscribers}
-        totalPlans={overallStats.totalPlans}
-        recentCompletions={overallStats.recentCompletions}
+        totalUniqueSubscribers={overallStats.totalUniqueSubscribers ?? 0}
+        totalPlans={overallStats.totalPlans ?? 0}
+        recentCompletions={overallStats.recentCompletions ?? 0}
       />
 
       {/* Individual Plan Stats */}
