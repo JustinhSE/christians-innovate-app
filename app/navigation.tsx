@@ -75,7 +75,7 @@ export async function NavigationBar() {
 
               {isAdmin && (
                 <Link
-                  href="/admin/plans"
+                  href="/admin/dashboard"
                   className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition"
                 >
                   <Shield className="h-4 w-4" />
