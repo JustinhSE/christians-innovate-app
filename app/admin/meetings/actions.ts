@@ -26,15 +26,8 @@ export async function createMeeting(formData: FormData) {
   const title = formData.get('title') as string
   const description = formData.get('description') as string
   const zoomLink = formData.get('zoom_link') as string
-  const meetingDateInput = formData.get('meeting_date') as string
+  const meetingDate = formData.get('meeting_date') as string
   const isActive = formData.get('is_active') === 'true'
-
-  // datetime-local gives us "2024-01-21T19:30" format (user's local time, no timezone)
-  // Create a Date object which interprets it as local time, then convert to ISO (UTC)
-  const meetingDate = new Date(meetingDateInput).toISOString()
-
-  console.log('Meeting date input (local):', meetingDateInput)
-  console.log('Meeting date saved (UTC):', meetingDate)
 
   // If activating this meeting, deactivate all others first
   if (isActive) {
@@ -86,11 +79,8 @@ export async function updateMeeting(meetingId: string, formData: FormData) {
   const title = formData.get('title') as string
   const description = formData.get('description') as string
   const zoomLink = formData.get('zoom_link') as string
-  const meetingDateInput = formData.get('meeting_date') as string
+  const meetingDate = formData.get('meeting_date') as string
   const isActive = formData.get('is_active') === 'true'
-
-  // Convert local datetime to UTC for storage
-  const meetingDate = new Date(meetingDateInput).toISOString()
 
   // If activating this meeting, deactivate all others first
   if (isActive) {

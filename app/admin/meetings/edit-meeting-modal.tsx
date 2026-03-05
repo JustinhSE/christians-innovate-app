@@ -39,6 +39,12 @@ export function EditMeetingModal({ meeting, onClose }: EditMeetingModalProps) {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+
+    const meetingDateInput = formData.get('meeting_date') as string
+    if (meetingDateInput) {
+      formData.set('meeting_date', new Date(meetingDateInput).toISOString())
+    }
+
     const result = await updateMeeting(meeting.id, formData)
 
     if (result?.error) {

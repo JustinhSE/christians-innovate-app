@@ -44,11 +44,14 @@ export default async function RootLayout({
   // Fetch active meeting for announcement bar
   let activeMeeting = null
   if (user) {
+    const startOfToday = new Date()
+    startOfToday.setHours(0, 0, 0, 0)
+
     const { data } = await supabase
       .from('meetings')
       .select('*')
       .eq('is_active', true)
-      .gte('meeting_date', new Date().toISOString())
+      .gte('meeting_date', startOfToday.toISOString())
       .order('meeting_date', { ascending: true })
       .limit(1)
       .single()

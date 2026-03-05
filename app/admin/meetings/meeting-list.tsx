@@ -68,7 +68,9 @@ export function MeetingList({ meetings }: MeetingListProps) {
     <div className="space-y-4">
       {meetings.map((meeting) => {
         const meetingDate = new Date(meeting.meeting_date)
-        const isPast = meetingDate < new Date()
+        const startOfToday = new Date()
+        startOfToday.setHours(0, 0, 0, 0)
+        const isPast = meetingDate < startOfToday
         const isLoading = loadingId === meeting.id
 
         return (
