@@ -2,20 +2,6 @@
 
 All notable changes to **Christians Innovate App** will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-
-## 0.2.0 (2026-03-09)
-
-### ### Added
-
-* add resources page and navigation updates ([d25d023](https://github.com/vcjr/christians-innovate-app/commit/d25d023eaff6daab61c8d99033b95ecdcc7fb25a))
-* **admin:** add reading plan analytics dashboard with subscriber tracking ([99e5985](https://github.com/vcjr/christians-innovate-app/commit/99e59858fbca90d41c1faf4089fd84235b4755f7))
-
-# Changelog
-
-All notable changes to **Christians Innovate App** will be documented in this file.
-
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -25,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
+
+*No unreleased changes yet.*
+
+---
+
+## [0.2.0] - 2026-03-09
 
 ### Added
 
@@ -93,5 +85,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/vcjr/christians-innovate-app/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/vcjr/christians-innovate-app/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/vcjr/christians-innovate-app/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/vcjr/christians-innovate-app/releases/tag/v0.1.0
